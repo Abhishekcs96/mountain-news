@@ -13,13 +13,13 @@ RANDOM_NUMBER="${RANDOM}"
 pick_news(){
     NUMBER_PATTERN_1="^[0-9]$"
     NUMBER_PATTERN_2="^[0-9]{2}$"
-    read -p "Pick a number, dummy " -n 2 -r
+    read -p "Pick a number " -n 2 -r
     echo
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
     cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
         grep --only-matching -e '<p>.*</p>' | ghead -n -3 | pandoc -f html -t markdown | less || \
-        echo "Cannot find number entered idiot...hahaha"
+        echo "Cannot find entered number..."
 
     rm "/tmp/news-${RANDOM_NUMBER}"
 }
