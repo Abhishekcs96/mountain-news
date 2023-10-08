@@ -18,7 +18,7 @@ while getopts ":c:h" opt; do
         c)
             DEFAULT_CATEGORY="${OPTARG}"
             ;;
-        h|--help)
+        h)
             show_help 
             ;;
         \?)
