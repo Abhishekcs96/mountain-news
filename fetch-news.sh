@@ -69,8 +69,12 @@ COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
 pick_news(){
     NUMBER_PATTERN_1="^[0-9]$"
     NUMBER_PATTERN_2="^[0-9]{2}$"
-    read -p "Enter the number for the article you would like to read " -n 2 -r
+    QUIT_PATTERN="^[qQ]$"
+    read -p "Enter the number for the article you would like to read (or press q to quit)" -n 2 -r
     echo
+    if [[ $REPLY =~ ${QUIT_PATTERN} ]]; then
+        exit 0
+    fi
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
     cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
