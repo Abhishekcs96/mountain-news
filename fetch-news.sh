@@ -83,8 +83,9 @@ pick_news(){
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
     x="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
         grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain)" 
-
-    local SPACES=$(( $TERMINAL_WIDTH - "${#x}" / 2 ))  
+    FIRST_LINE=$(echo "$x" | head -1)
+    echo ${#FIRST_LINE}
+    local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
     for (( i=0; i<$SPACES; i++ )); do
         PADDING+=" "
     done
