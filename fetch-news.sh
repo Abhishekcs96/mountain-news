@@ -64,42 +64,43 @@ echo
 RANDOM_NUMBER="${RANDOM}" 
 URL_FOR_NEWS="https://explorersweb.com/category/${LOWER_DEFAULT_CATEGORY}/"
 PATTERN="${URL_FOR_NEWS%*/*/*/}"
-COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
-    | pandoc -t markdown | grep -A1 -i -e '<div class="news-card">' \
-    | grep -v -e'<div class="news-card">' | grep -e "${PATTERN}" \
-    | awk -F\" '{print $2}')" 
 
 pick_news(){
-    NUMBER_PATTERN_1="^[0-9]$"
-    NUMBER_PATTERN_2="^[0-9]{2}$"
-    QUIT_PATTERN="^[qQ]$"
+    local NUMBER_PATTERN_1="^[0-9]$"
+    local NUMBER_PATTERN_2="^[0-9]{2}$"
+    local QUIT_PATTERN="^[qQ]$"
     echo
-    read -p "Enter the number for the article you would like to read (or press q to quit)" -n 2 -r
+    read -p "Enter the number for the article you would like to read (or press q to quit) " -n 2 -r
     echo
     if [[ $REPLY =~ ${QUIT_PATTERN} ]]; then
         exit 0
     fi
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
-    x="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
-        grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain)" 
-    FIRST_LINE=$(echo "$x" | head -1)
-    echo ${#FIRST_LINE}
+    
+    local NEWS="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
+                  grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain || \
+                  cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
+                  grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | head -n -3 | pandoc -f html -t plain || \
+                  echo "Cannot find entered number...." 1>&2)" 
+    
+    local FIRST_LINE=$(echo "$NEWS" | head -1)
     local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
     for (( i=0; i<$SPACES; i++ )); do
         PADDING+=" "
     done
     
-    echo "${PADDING}${x}"
-#    | less || \
-#        echo "Cannot find entered number..."
-
+    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${NEWS}"  | fmt -w ${TERMINAL_WIDTH} | less
     rm "/tmp/news-${RANDOM_NUMBER}"
 }
 
 display_news(){
     declare -i COUNT
-    COUNT=1
+    local COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
+        | pandoc -t markdown | grep -A1 -i -e '<div class="news-card">' \
+        | grep -v -e'<div class="news-card">' | grep -e "${PATTERN}" \
+        | awk -F\" '{print $2}')" 
+    local COUNT=1
     while read -r LINE; do
         echo -e ""${COUNT}"\t"${LINE}"" | tee -a "/tmp/news-${RANDOM_NUMBER}"
         COUNT=$COUNT+1
