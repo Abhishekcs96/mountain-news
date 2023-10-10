@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -eu -o pipefail
+#set -x
 
 show_help(){
     echo  "USAGE: $0 [-c value] [--help]"
@@ -55,6 +56,8 @@ case $LOWER_DEFAULT_CATEGORY in
         ;;
 esac
 
+TERMINAL_WIDTH="$(tput cols)"
+PADDING=""
 echo "Checking for news in category: ${LOWER_DEFAULT_CATEGORY}..."
 echo
 
@@ -70,6 +73,7 @@ pick_news(){
     NUMBER_PATTERN_1="^[0-9]$"
     NUMBER_PATTERN_2="^[0-9]{2}$"
     QUIT_PATTERN="^[qQ]$"
+    echo
     read -p "Enter the number for the article you would like to read (or press q to quit)" -n 2 -r
     echo
     if [[ $REPLY =~ ${QUIT_PATTERN} ]]; then
@@ -77,9 +81,17 @@ pick_news(){
     fi
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
-    cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
-        grep --only-matching -e '<p>.*</p>' | ghead -n -3 | pandoc -f html -t markdown | less || \
-        echo "Cannot find entered number..."
+    x="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
+        grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain)" 
+
+    local SPACES=$(( $TERMINAL_WIDTH - "${#x}" / 2 ))  
+    for (( i=0; i<$SPACES; i++ )); do
+        PADDING+=" "
+    done
+    
+    echo "${PADDING}${x}"
+#    | less || \
+#        echo "Cannot find entered number..."
 
     rm "/tmp/news-${RANDOM_NUMBER}"
 }
