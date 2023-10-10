@@ -85,12 +85,13 @@ pick_news(){
                   echo "Cannot find entered number...." 1>&2)" 
     
     local FIRST_LINE=$(echo "$NEWS" | head -1)
+    local EXCEPT_FIRST_LINE=$(echo "$NEWS" | tail -n +2)
     local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
     for (( i=0; i<$SPACES; i++ )); do
         PADDING+=" "
     done
     
-    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${NEWS}"  | fmt -w ${TERMINAL_WIDTH} | less
+    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}"  | fmt -w ${TERMINAL_WIDTH} | less
     rm "/tmp/news-${RANDOM_NUMBER}"
 }
 
