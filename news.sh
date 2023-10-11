@@ -62,7 +62,8 @@ echo "Checking for news in category: ${LOWER_DEFAULT_CATEGORY}..."
 echo
 
 RANDOM_NUMBER="${RANDOM}" 
-URL_FOR_NEWS="https://explorersweb.com/category/${LOWER_DEFAULT_CATEGORY}/"
+WEBSITE="https://explorersweb.com"
+URL_FOR_NEWS="${WEBSITE}/category/${LOWER_DEFAULT_CATEGORY}/"
 PATTERN="${URL_FOR_NEWS%*/*/*/}"
 
 pick_news(){
@@ -78,9 +79,11 @@ pick_news(){
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
     
-    local NEWS="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
+    local NEWS="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n $REPLY | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
+                  xargs -I{} -- 2>/dev/null curl {} | \
                   grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain || \
-                  cat "/tmp/news-${RANDOM_NUMBER}" | head -n "$REPLY" | tail -n 1 | awk -F'\t' '{print $NF}' | xargs -I{} -- 2>/dev/null curl {} | \
+                  cat "/tmp/news-${RANDOM_NUMBER}" | head -n $REPLY | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
+                  xargs -I{} -- 2>/dev/null curl {} | \
                   grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | head -n -3 | pandoc -f html -t plain || \
                   echo "Cannot find entered number...." 1>&2)" 
     
@@ -98,12 +101,13 @@ pick_news(){
 display_news(){
     declare -i COUNT
     local COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
-        | pandoc -t markdown | grep -A1 -i -e '<div class="news-card">' \
+        | pandoc -t plain | grep -A1 -i -e '<div class="news-card">' \
         | grep -v -e'<div class="news-card">' | grep -e "${PATTERN}" \
         | awk -F\" '{print $2}')" 
     local COUNT=1
     while read -r LINE; do
-        echo -e ""${COUNT}"\t"${LINE}"" | tee -a "/tmp/news-${RANDOM_NUMBER}"
+        local TITLE="$(echo "${LINE}" | awk -F/ '{print $4}')"
+        echo -e ""${COUNT}"\t"${TITLE}"" | tee -a "/tmp/news-${RANDOM_NUMBER}"
         COUNT=$COUNT+1
     done < <(echo "${COMMAND}")
     pick_news
