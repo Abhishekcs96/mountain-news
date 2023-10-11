@@ -1,4 +1,4 @@
-# Mountaineering news
+# Exploratory news on the terminal
 
 I like doing stuff on the terminal which includes reading news.
 
@@ -12,4 +12,10 @@ You can choose from the categories listed, currently there's support for only 5 
 
 - Clone this repo
 - You can alias this script if you want, add it to your relevant rc file.
-- run `./fetch-news.sh -h` to see all the categories you can read news from.
+- run `./news.sh -h` to see all the categories you can read news from.
+
+## Features I wanna add
+
+- Ensure code is clean...lol
+- Remove options and just populate all the potential options as tab completable options
+- Extend this to other websites as well
