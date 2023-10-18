@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
 
-set -eu -o pipefail
+set -e -o pipefail
 #set -x
 
 show_help(){
-    echo  "USAGE: $0 [-c value] [--help]"
+    echo  "USAGE: $0 [category_of_news] [--help]"
     echo  "OPTIONS:"
-    echo -e " -c       catergory of news (default is mountaineering), choose from:\n"
-    echo -e "\t\tmountaineering\n\t\texpeditions\n\t\tpolar-exploration\n\t\tlong-distance-trekking\n\t\t8000ers"
     echo -e "\n--help   Display this help message"
-    exit 1
+    echo "Categories to choose from:"
+    echo -e "\t\tmountaineering\n\t\texpeditions\n\t\tpolar-exploration\n\t\tlong-distance-trekking\n\t\t8000ers"
+    exit 0
 }
 
-DEFAULT_CATEGORY="mountaineering"
-
-while getopts ":c:h" opt; do
+while getopts ":h" opt; do
     case $opt in
-        c)
-            DEFAULT_CATEGORY="${OPTARG}"
-            ;;
         h)
             show_help 
             ;;
@@ -26,15 +21,20 @@ while getopts ":c:h" opt; do
             echo "Invalid option: ${OPTARG}" >&2 
             exit 1
             ;;
-        :)
-            echo "Option -${OPTARG} requires an argument" >&2 
-            ;;
     esac
 done   
 
-LOWER_DEFAULT_CATEGORY="${DEFAULT_CATEGORY,,}"
+if [[ -z "$1" ]]; then
+    echo "No Category provided...defaulting to category: \"mountaineering\"..."
+    CATEGORY="mountaineering"
+else
+    echo "Searching for news in category: \"$1\"..."
+    CATEGORY="$1"
+fi
 
-case $LOWER_DEFAULT_CATEGORY in
+LOWER_CATEGORY="${CATEGORY,,}"
+
+case $LOWER_CATEGORY in
     mountaineering)
         :
         ;;
@@ -58,12 +58,12 @@ esac
 
 TERMINAL_WIDTH="$(tput cols)"
 PADDING=""
-echo "Checking for news in category: ${LOWER_DEFAULT_CATEGORY}..."
+echo "Checking for news in category: ${LOWER_CATEGORY}..."
 echo
 
 RANDOM_NUMBER="${RANDOM}" 
 WEBSITE="https://explorersweb.com"
-URL_FOR_NEWS="${WEBSITE}/category/${LOWER_DEFAULT_CATEGORY}/"
+URL_FOR_NEWS="${WEBSITE}/category/${LOWER_CATEGORY}/"
 PATTERN="${URL_FOR_NEWS%*/*/*/}"
 
 pick_news(){
