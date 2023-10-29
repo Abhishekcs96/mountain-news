@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 set -e -o pipefail
-#set -x
 
-show_help(){
+function show_help(){
     echo  "USAGE: $0 [category_of_news] [--help]"
     echo  "OPTIONS:"
     echo -e "\n--help   Display this help message"
@@ -66,7 +65,7 @@ WEBSITE="https://explorersweb.com"
 URL_FOR_NEWS="${WEBSITE}/category/${LOWER_CATEGORY}/"
 PATTERN="${URL_FOR_NEWS%*/*/*/}"
 
-pick_news(){
+function pick_news(){
     local NUMBER_PATTERN_1="^[0-9]$"
     local NUMBER_PATTERN_2="^[0-9]{2}$"
     local QUIT_PATTERN="^[qQ]$"
@@ -93,12 +92,10 @@ pick_news(){
     for (( i=0; i<$SPACES; i++ )); do
         PADDING+=" "
     done
-    
     printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}"  | fmt -w ${TERMINAL_WIDTH} | less
-    rm "/tmp/news-${RANDOM_NUMBER}"
 }
 
-display_news(){
+function display_news(){
     declare -i COUNT
     local COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
         | pandoc -t plain | grep -A1 -i -e '<div class="news-card">' \
@@ -113,8 +110,13 @@ display_news(){
     pick_news
 }
 
-main(){
+function main(){
     display_news
 }
 
+function cleanup(){
+    rm "/tmp/news-${RANDOM_NUMBER}"
+}
+
 main
+trap cleanup EXIT
