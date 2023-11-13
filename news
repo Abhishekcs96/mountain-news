@@ -78,15 +78,15 @@ function pick_news(){
     # Check if it matches pattern , then continue next else just exit out
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
     
-    local NEWS="$(cat "/tmp/news-${RANDOM_NUMBER}" | head -n $REPLY | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
+    local NEWS="$(head -n $REPLY "/tmp/news-${RANDOM_NUMBER}" | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
                   xargs -I{} -- 2>/dev/null curl {} | \
                   grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain || \
-                  cat "/tmp/news-${RANDOM_NUMBER}" | head -n $REPLY | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
+                  head -n $REPLY "/tmp/news-${RANDOM_NUMBER}" | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
                   xargs -I{} -- 2>/dev/null curl {} | \
                   grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | head -n -3 | pandoc -f html -t plain || \
                   echo "Cannot find entered number...." 1>&2)" 
     
-    local FIRST_LINE=$(echo "$NEWS" | head -1)
+    local FIRST_LINE="$(echo "$NEWS" | head -n +1)"
     local EXCEPT_FIRST_LINE=$(echo "$NEWS" | tail -n +2)
     local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
     for (( i=0; i<$SPACES; i++ )); do
@@ -103,7 +103,7 @@ function display_news(){
         | awk -F\" '{print $2}')" 
     local COUNT=1
     while read -r LINE; do
-        local TITLE="$(echo "${LINE}" | awk -F/ '{print $4}')"
+        local TITLE="$(awk -F/ '{print $4}' <(echo "${LINE}"))"
         echo -e ""${COUNT}"\t"${TITLE}"" | tee -a "/tmp/news-${RANDOM_NUMBER}"
         COUNT=$COUNT+1
     done < <(echo "${COMMAND}")
