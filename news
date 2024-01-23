@@ -76,7 +76,7 @@ function pick_news(){
         exit 0
     fi
     # Check if it matches pattern , then continue next else just exit out
-    [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || echo "Pattern not matched..."
+    [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || { echo "Pattern not matched..."; exit 1; }
     
     local NEWS="$(head -n $REPLY "/tmp/news-${RANDOM_NUMBER}" | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
                   xargs -I{} -- 2>/dev/null curl {} | \
