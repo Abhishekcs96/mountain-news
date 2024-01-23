@@ -76,23 +76,29 @@ function pick_news(){
         exit 0
     fi
     # Check if it matches pattern , then continue next else just exit out
-    [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || { echo "Pattern not matched..."; exit 1; }
-    
-    local NEWS="$(head -n $REPLY "/tmp/news-${RANDOM_NUMBER}" | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
-                  xargs -I{} -- 2>/dev/null curl {} | \
-                  grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain || \
-                  head -n $REPLY "/tmp/news-${RANDOM_NUMBER}" | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' | \
-                  xargs -I{} -- 2>/dev/null curl {} | \
-                  grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | head -n -3 | pandoc -f html -t plain || \
-                  echo "Cannot find entered number...." 1>&2)" 
+    [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || { echo "Cannot find number. Pattern not matched..."; exit 1; }
+   
+    # check for ghead or head before attempting to perform this nonsense here
+
+    if 2>/dev/null command ghead; then
+        local NEWS="$(head -n "$REPLY" "/tmp/news-${RANDOM_NUMBER}" \
+                        | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' \
+                        | xargs -I{} -- 2>/dev/null curl {} \
+                        | grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | ghead -n -3 | pandoc -f html -t plain)"
+    else
+        local NEWS="$(head -n "$REPLY" "/tmp/news-${RANDOM_NUMBER}" \
+                        | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' \
+                        | xargs -I{} -- 2>/dev/null curl {} \
+                        | grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | head -n -3 | pandoc -f html -t plain)" 
+    fi
     
     local FIRST_LINE="$(echo "$NEWS" | head -n +1)"
     local EXCEPT_FIRST_LINE=$(echo "$NEWS" | tail -n +2)
     local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
-    for (( i=0; i<$SPACES; i++ )); do
+    for (( i=0; i<SPACES; i++ )); do
         PADDING+=" "
     done
-    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}"  | fmt -w ${TERMINAL_WIDTH} | less
+    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}"  | fmt -w "${TERMINAL_WIDTH}" | less
 }
 
 function display_news(){
@@ -104,7 +110,7 @@ function display_news(){
     local COUNT=1
     while read -r LINE; do
         local TITLE="$(awk -F/ '{print $4}' <(echo "${LINE}"))"
-        echo -e ""${COUNT}"\t"${TITLE}"" | tee -a "/tmp/news-${RANDOM_NUMBER}"
+        echo -e "${COUNT}\t${TITLE}" | tee -a "/tmp/news-${RANDOM_NUMBER}"
         COUNT=$COUNT+1
     done < <(echo "${COMMAND}")
     pick_news
