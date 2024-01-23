@@ -5,28 +5,32 @@ set -eu -o pipefail
 
 # TODO: Better logging
 # TODO: Check if directories available or not and if the binaries are installed
-# TODO: eg: if chmod exisits, if cp exists and if /usr/local/bin exists...
+# Required binaries: pandoc
 
 echo "Setting up..."
 EXEC_PATH="$(sudo grealpath news 2>/dev/null || sudo realpath news 2>/dev/null || ( echo "realpath/grealpath commands not found..."; exit 1 ))"
 EXECUTABLE="/usr/local/bin/news"
-
-# Required binaries: pandoc
-
 YES_PATTERN="^[yY]$"
 NO_PATTERN="^[nN]$"
 
-if 2>/dev/null hash pandoc; then
-   echo "\"pandoc\" found..."
+
+if [[ "$(command -v pandoc)" ]]; then
+   echo "\"pandoc\" found. Continuing..."
 else
    read -p "\"pandoc\" not found...pandoc is required for the program. Would you like to install pandoc? [y/n]" -n 1 -r
    if [[ $REPLY =~ ${YES_PATTERN} ]]; then
        echo "yes"
-      # install pandoc here  
+       # check package manager. -x will check if the file path returned by command exists and is executable.
+       if [[ -x "$(command -v apt]]; then sudo apt install -y pandoc
+       elif [[ -x "$(command -v dnf)"]]; then sudo dnf install -y pandoc
+       elif [[ -x "$(command -v yum)"]]; then sudo yum install -y pandoc 
+       elif [[ -x "$(command -v pacman)"]]; then sudo pacman install -y pandoc
+       elif [[ -x "$(command -v zypper)"]]; then sudo zypper install -y pandoc
+       else
+           >&2 echo "unable to find correct package manager to install... please manually install \"pandoc\""
+       fi 
    else
-       # exit here if user denies
-       echo "no"
-       exit 1
+       echo "Not installing \"pandoc\". \"Pandoc\" is needed for script to run."
    fi
 fi
 
