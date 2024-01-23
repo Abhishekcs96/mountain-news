@@ -36,7 +36,6 @@ else
    fi
 fi
 
-# change this
 if [[ -d "${EXECUTABLE%/*}" ]]; then
     echo "Directory ${EXECUTABLE%/*} found..."
     sudo ln -s "${EXEC_PATH}" "${EXECUTABLE}"
