@@ -19,13 +19,13 @@ if [[ "$(command -v pandoc)" ]]; then
 else
    read -p "\"pandoc\" not found...pandoc is required for the program. Would you like to install pandoc? [y/n]" -n 1 -r
    if [[ $REPLY =~ ${YES_PATTERN} ]]; then
-       echo "yes"
+       echo "Installing pandoc..."
        # check package manager. -x will check if the file path returned by command exists and is executable.
-       if [[ -x "$(command -v apt]]; then sudo apt install -y pandoc
-       elif [[ -x "$(command -v dnf)"]]; then sudo dnf install -y pandoc
-       elif [[ -x "$(command -v yum)"]]; then sudo yum install -y pandoc 
-       elif [[ -x "$(command -v pacman)"]]; then sudo pacman install -y pandoc
-       elif [[ -x "$(command -v zypper)"]]; then sudo zypper install -y pandoc
+       if [[ -x "$(command -v apt)" ]]; then sudo apt install -y pandoc
+       elif [[ -x "$(command -v dnf)" ]]; then sudo dnf install -y pandoc
+       elif [[ -x "$(command -v yum)" ]]; then sudo yum install -y pandoc 
+       elif [[ -x "$(command -v pacman)" ]]; then sudo pacman install -y pandoc
+       elif [[ -x "$(command -v zypper)" ]]; then sudo zypper install -y pandoc
        else
            >&2 echo "unable to find correct package manager to install... please manually install \"pandoc\""
        fi 
