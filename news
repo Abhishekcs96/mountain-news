@@ -95,10 +95,8 @@ function pick_news(){
     local FIRST_LINE="$(echo "$NEWS" | head -n +1)"
     local EXCEPT_FIRST_LINE=$(echo "$NEWS" | tail -n +2)
     local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
-    for (( i=0; i<SPACES; i++ )); do
-        PADDING+=" "
-    done
-    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}"  | fmt -w "${TERMINAL_WIDTH}" | less
+    local PADDING="$(printf "%${SPACES}s" " ")"
+    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}" | fmt -w ${TERMINAL_WIDTH} | less
 }
 
 function display_news(){
