@@ -7,10 +7,12 @@ function cleanup(){
 }
 
 function generate_news(){
-    head -n "$REPLY" "/tmp/news-${RANDOM_NUMBER}" \
-      | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF}' \
+    echo $REPLY
+    echo $RANDOM_NUMBER
+    (head -n "$REPLY" "/tmp/news-${RANDOM_NUMBER}" \
+      | tail -n 1 | awk -F'\t' '{print "https://explorersweb.com/"$NF"/"}' \
       | xargs -I{} -- 2>/dev/null curl {} \
-      | grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | "$1" -n -3 | pandoc -f html -t plain
+      | grep --only-matching -e '<p>.*</p>' -e '<title>.*</title>' | pandoc -f html -t plain | less) || (echo "Unable to curl data...exiting"; exit 1)
 }
 
 function show_help(){
@@ -37,24 +39,19 @@ function pick_news(){
     [[ $REPLY =~ ${NUMBER_PATTERN_1} ]] || [[ $REPLY =~ ${NUMBER_PATTERN_2} ]] || { echo "Cannot find number. Pattern not matched..."; exit 1; }
    
     # check for ghead or head before attempting to perform this nonsense here
-    if 2>/dev/null command ghead; then
-        local NEWS="$(generate_news 'ghead')"
+    if ! 2>/dev/null command ghead; then
+        generate_news 'head'
     else
-        local NEWS="$(generate_news 'head')"
+        generate_news 'ghead'
     fi
-    
-    local FIRST_LINE="$(echo "$NEWS" | head -n +1)"
-    local EXCEPT_FIRST_LINE=$(echo "$NEWS" | tail -n +2)
-    local SPACES=$(( (TERMINAL_WIDTH - ${#FIRST_LINE}) / 2 ))  
-    local PADDING="$(printf "%${SPACES}s" " ")"
-    printf "%s%s\n%s" "${PADDING}" "${FIRST_LINE}" "${EXCEPT_FIRST_LINE}" | fmt -w ${TERMINAL_WIDTH} | less
 }
 
 function display_news(){
     declare -i COUNT
+    #TODO: Rename COMMAND pls
     local COMMAND="$(2>/dev/null curl "${URL_FOR_NEWS}" \
-        | pandoc -t plain | grep -A1 -i -e '<div class="news-card">' \
-        | grep -v -e'<div class="news-card">' | grep -e "${PATTERN}" \
+        | pandoc -t plain | grep -A1 -i -E '<div class="news-card">' \
+        | grep -v -E '<div class="news-card">' | grep -E "${PATTERN}" \
         | awk -F\" '{print $2}')" 
     local COUNT=1
     while read -r LINE; do
@@ -109,8 +106,6 @@ case $LOWER_CATEGORY in
         ;;
 esac
 
-TERMINAL_WIDTH="$(tput cols)"
-PADDING=""
 echo "Checking for news in category: ${LOWER_CATEGORY}..."
 echo
 
